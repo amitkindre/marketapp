@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0e;
+    --bg2: #0a1520;
+    --bg3: #0f1e2e;
+    --accent: #00d4ff;
+    --accent2: #00ff9d;
+    --danger: #ff4560;
+    --warning: #ffb800;
+    --text: #c8e0f0;
+    --muted: #3a5a7a;
+    --border: #0d2a3d;
+    --glow: 0 0 20px rgba(0,212,255,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 30px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 30px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .logo-icon::before {
+    content: '▲';
+    color: var(--accent);
+    font-size: 14px;
+  }
+
+  .logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 2s infinite;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,255,157,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,255,157,0); }
+  }
+
+  .status-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    letter-spacing: 2px;
+  }
+
+  #last-updated {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.2s;
+    cursor: default;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    opacity: 0.6;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--glow);
+  }
+
+  .card.india::before { background: var(--warning); }
+  .card.commodity::before { background: var(--accent2); }
+  .card.us::before { background: var(--accent); }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .card-symbol {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .card-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .card-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid;
+    letter-spacing: 2px;
+  }
+
+  .card-badge.india { color: var(--warning); border-color: var(--warning); }
+  .card-badge.us { color: var(--accent); border-color: var(--accent); }
+  .card-badge.commodity { color: var(--accent2); border-color: var(--accent2); }
+
+  .card-price {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 28px;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    min-height: 40px;
+  }
+
+  .card-price.loading {
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .stat-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .change-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 4px 10px;
+    font-weight: 400;
+  }
+
+  .change-badge.up {
+    color: var(--accent2);
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.2);
+  }
+
+  .change-badge.down {
+    color: var(--danger);
+    background: rgba(255,69,96,0.08);
+    border: 1px solid rgba(255,69,96,0.2);
+  }
+
+  .change-badge.neutral {
+    color: var(--muted);
+    background: rgba(58,90,122,0.2);
+    border: 1px solid var(--border);
+  }
+
+  /* Ticker tape */
+  .ticker-wrap {
+    background: var(--bg3);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    padding: 10px 0;
+    margin-bottom: 30px;
+    position: relative;
+  }
+
+  .ticker-wrap::before,
+  .ticker-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 80px;
+    z-index: 2;
+  }
+
+  .ticker-wrap::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg3), transparent);
+  }
+
+  .ticker-wrap::after {
+    right: 0;
+    background: linear-gradient(-90deg, var(--bg3), transparent);
+  }
+
+  .ticker {
+    display: flex;
+    gap: 40px;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .ticker-item {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 1px;
+  }
+
+  .ticker-name { color: var(--muted); }
+  .ticker-price { color: #fff; }
+  .ticker-up { color: var(--accent2); }
+  .ticker-down { color: var(--danger); }
+  .ticker-sep { color: var(--border); }
+
+  /* Error state */
+  .error-banner {
+    background: rgba(255,69,96,0.08);
+    border: 1px solid rgba(255,69,96,0.3);
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--danger);
+    letter-spacing: 1px;
+  }
+
+  .error-banner.show { display: flex; }
+
+  /* Config panel */
+  .config-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+  }
+
+  .config-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  .config-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 8px 12px;
+    letter-spacing: 1px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .config-input:focus { border-color: var(--accent); }
+
+  .config-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 8px 18px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+
+  .config-btn:hover { opacity: 0.85; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .footer-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .config-bar { flex-direction: column; align-items: stretch; }
+    .header-right { flex-direction: column; gap: 6px; align-items: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon"></div>
+      <div class="logo-text">MARKET<span>FEED</span></div>
+    </div>
+    <div class="header-right">
+      <div>
+        <span class="status-dot"></span>
+        <span class="status-text" id="status-text">CONNECTING...</span>
+      </div>
+      <div id="last-updated">LAST UPDATE: --:--:--</div>
+    </div>
+  </header>
+
+  <!-- Config bar -->
+  <div class="config-bar">
+    <span class="config-label">API ENDPOINT</span>
+    <input class="config-input" type="text" id="api-url"
+      value="http://144.24.117.46:5000/market"
+      placeholder="http://your-vm-ip:5000/market" />
+    <button class="config-btn" onclick="updateEndpoint()">CONNECT</button>
+  </div>
+
+  <!-- Error banner -->
+  <div class="error-banner" id="error-banner">
+    <span>⚠</span>
+    <span id="error-msg">Cannot reach API endpoint</span>
+  </div>
+
+  <!-- Ticker tape -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <span class="ticker-item"><span class="ticker-name">LOADING</span><span class="ticker-sep">|</span><span class="ticker-price">---</span></span>
+    </div>
+  </div>
+
+  <!-- Indian Markets -->
+  <div class="section-label">INDIAN MARKETS</div>
+  <div class="cards-grid" id="india-grid">
+    <div class="card india" id="card-NIFTY50">
+      <div class="card-header">
+        <div><div class="card-symbol">^NSEI</div><div class="card-name">NIFTY 50</div></div>
+        <span class="card-badge india">IN</span>
+      </div>
+      <div class="card-price loading" id="price-NIFTY50">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-NIFTY50">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-NIFTY50">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-NIFTY50">---</span></div>
+        <span class="change-badge neutral" id="change-NIFTY50">---</span>
+      </div>
+    </div>
+
+    <div class="card india" id="card-BANKNIFTY">
+      <div class="card-header">
+        <div><div class="card-symbol">^NSEBANK</div><div class="card-name">BANK NIFTY</div></div>
+        <span class="card-badge india">IN</span>
+      </div>
+      <div class="card-price loading" id="price-BANKNIFTY">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-BANKNIFTY">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-BANKNIFTY">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-BANKNIFTY">---</span></div>
+        <span class="change-badge neutral" id="change-BANKNIFTY">---</span>
+      </div>
+    </div>
+
+    <div class="card india" id="card-SENSEX">
+      <div class="card-header">
+        <div><div class="card-symbol">^BSESN</div><div class="card-name">SENSEX</div></div>
+        <span class="card-badge india">IN</span>
+      </div>
+      <div class="card-price loading" id="price-SENSEX">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-SENSEX">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-SENSEX">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-SENSEX">---</span></div>
+        <span class="change-badge neutral" id="change-SENSEX">---</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- US Markets -->
+  <div class="section-label">US MARKETS</div>
+  <div class="cards-grid">
+    <div class="card us" id="card-AAPL">
+      <div class="card-header">
+        <div><div class="card-symbol">NASDAQ:AAPL</div><div class="card-name">APPLE INC</div></div>
+        <span class="card-badge us">US</span>
+      </div>
+      <div class="card-price loading" id="price-AAPL">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-AAPL">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-AAPL">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-AAPL">---</span></div>
+        <span class="change-badge neutral" id="change-AAPL">---</span>
+      </div>
+    </div>
+
+    <div class="card us" id="card-MSFT">
+      <div class="card-header">
+        <div><div class="card-symbol">NASDAQ:MSFT</div><div class="card-name">MICROSOFT</div></div>
+        <span class="card-badge us">US</span>
+      </div>
+      <div class="card-price loading" id="price-MSFT">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-MSFT">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-MSFT">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-MSFT">---</span></div>
+        <span class="change-badge neutral" id="change-MSFT">---</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commodities -->
+  <div class="section-label">COMMODITIES</div>
+  <div class="cards-grid">
+    <div class="card commodity" id="card-GOLD">
+      <div class="card-header">
+        <div><div class="card-symbol">GC=F</div><div class="card-name">GOLD</div></div>
+        <span class="card-badge commodity">CMD</span>
+      </div>
+      <div class="card-price loading" id="price-GOLD">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-GOLD">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-GOLD">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-GOLD">---</span></div>
+        <span class="change-badge neutral" id="change-GOLD">---</span>
+      </div>
+    </div>
+
+    <div class="card commodity" id="card-CRUDE_OIL">
+      <div class="card-header">
+        <div><div class="card-symbol">CL=F</div><div class="card-name">CRUDE OIL</div></div>
+        <span class="card-badge commodity">CMD</span>
+      </div>
+      <div class="card-price loading" id="price-CRUDE_OIL">LOADING...</div>
+      <div class="card-footer">
+        <div class="card-stat"><span class="stat-label">HIGH</span><span class="stat-value" id="high-CRUDE_OIL">---</span></div>
+        <div class="card-stat"><span class="stat-label">LOW</span><span class="stat-value" id="low-CRUDE_OIL">---</span></div>
+        <div class="card-stat"><span class="stat-label">VOL</span><span class="stat-value" id="vol-CRUDE_OIL">---</span></div>
+        <span class="change-badge neutral" id="change-CRUDE_OIL">---</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-text">DATA VIA YAHOO FINANCE · 15MIN DELAY · FOR INFORMATIONAL USE ONLY</span>
+    <button class="refresh-btn" onclick="fetchData()">↻ REFRESH</button>
+  </footer>
+
+</div>
+
+<script>
+  let API_URL = document.getElementById('api-url').value;
+  const SYMBOLS = ['NIFTY50','BANKNIFTY','SENSEX','AAPL','MSFT','GOLD','CRUDE_OIL'];
+  const prevPrices = {};
+
+  function updateEndpoint() {
+    API_URL = document.getElementById('api-url').value.trim();
+    fetchData();
+  }
+
+  function formatPrice(val, sym) {
+    if (!val && val !== 0) return '---';
+    const num = parseFloat(val);
+    if (['NIFTY50','BANKNIFTY','SENSEX'].includes(sym))
+      return num.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    return num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function formatVol(val) {
+    if (!val) return '---';
+    const n = parseInt(val);
+    if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(0) + 'K';
+    return n.toString();
+  }
+
+  function updateCard(sym, data) {
+    const price = parseFloat(data.price);
+    const prev = prevPrices[sym];
+    prevPrices[sym] = price;
+
+    const priceEl = document.getElementById('price-' + sym);
+    if (priceEl) {
+      priceEl.textContent = formatPrice(price, sym);
+      priceEl.classList.remove('loading');
+      if (prev !== undefined) {
+        priceEl.style.color = price > prev ? 'var(--accent2)' : price < prev ? 'var(--danger)' : '#fff';
+        setTimeout(() => { if(priceEl) priceEl.style.color = '#fff'; }, 1500);
+      }
+    }
+
+    const highEl = document.getElementById('high-' + sym);
+    if (highEl) highEl.textContent = formatPrice(data.high, sym);
+
+    const lowEl = document.getElementById('low-' + sym);
+    if (lowEl) lowEl.textContent = formatPrice(data.low, sym);
+
+    const volEl = document.getElementById('vol-' + sym);
+    if (volEl) volEl.textContent = formatVol(data.volume);
+  }
+
+  function updateTicker(allData) {
+    const items = Object.entries(allData).map(([sym, d]) => {
+      const price = formatPrice(d.price, sym);
+      return `<span class="ticker-item">
+        <span class="ticker-name">${sym}</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-price">${price}</span>
+      </span>`;
+    });
+    const doubled = [...items, ...items].join('<span class="ticker-sep" style="opacity:0.3">◆</span>');
+    document.getElementById('ticker').innerHTML = doubled;
+  }
+
+  async function fetchData() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      document.getElementById('error-banner').classList.remove('show');
+      document.getElementById('status-text').textContent = 'LIVE';
+      document.getElementById('last-updated').textContent =
+        'LAST UPDATE: ' + new Date().toLocaleTimeString('en-IN', {hour12: false});
+
+      SYMBOLS.forEach(sym => {
+        if (data[sym]) updateCard(sym, data[sym]);
+      });
+
+      updateTicker(data);
+
+    } catch(e) {
+      document.getElementById('error-banner').classList.add('show');
+      document.getElementById('error-msg').textContent =
+        'Cannot reach ' + API_URL + ' — ' + e.message;
+      document.getElementById('status-text').textContent = 'DISCONNECTED';
+    }
+  }
+
+  // Auto refresh every 60 seconds
+  fetchData();
+  setInterval(fetchData, 60000);
+</script>
+</body>
+</html>
