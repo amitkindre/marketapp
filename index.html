@@ -676,7 +676,11 @@
 
   async function fetchData() {
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(API_URL, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true'  // ← ADD THIS
+        }
+      });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
 
